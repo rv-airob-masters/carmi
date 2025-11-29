@@ -14,36 +14,61 @@
       <stop offset="100%" style="stop-color:#ef4444"/>
     </linearGradient>
   </defs>
+  
   <!-- Background Circle -->
   <circle cx="256" cy="256" r="240" fill="url(#bgGradient)"/>
+  
+  <!-- Outer Ring -->
   <circle cx="256" cy="256" r="240" fill="none" stroke="#4f46e5" stroke-width="8"/>
+  
   <!-- Car Body -->
-  <path d="M120 300 L140 240 L180 200 L332 200 L372 240 L392 300 L392 340 L120 340 Z" fill="url(#carGradient)" stroke="#4f46e5" stroke-width="4"/>
-  <path d="M180 200 L200 160 L312 160 L332 200" fill="url(#carGradient)" stroke="#4f46e5" stroke-width="4"/>
+  <path d="M120 300 L140 240 L180 200 L332 200 L372 240 L392 300 L392 340 L120 340 Z" 
+        fill="url(#carGradient)" stroke="#4f46e5" stroke-width="4"/>
+  
+  <!-- Car Roof -->
+  <path d="M180 200 L200 160 L312 160 L332 200" 
+        fill="url(#carGradient)" stroke="#4f46e5" stroke-width="4"/>
+  
   <!-- Windows -->
   <path d="M190 200 L205 170 L256 170 L256 200 Z" fill="#6366f1" opacity="0.6"/>
   <path d="M322 200 L307 170 L256 170 L256 200 Z" fill="#6366f1" opacity="0.6"/>
+  
   <!-- Headlights -->
   <rect x="130" y="260" width="30" height="20" rx="5" fill="#fbbf24"/>
   <rect x="352" y="260" width="30" height="20" rx="5" fill="#fbbf24"/>
+  
   <!-- Wheels -->
   <circle cx="175" cy="340" r="35" fill="#1f2937"/>
   <circle cx="175" cy="340" r="20" fill="#6b7280"/>
   <circle cx="175" cy="340" r="8" fill="#1f2937"/>
+  
   <circle cx="337" cy="340" r="35" fill="#1f2937"/>
   <circle cx="337" cy="340" r="20" fill="#6b7280"/>
   <circle cx="337" cy="340" r="8" fill="#1f2937"/>
-  <!-- Fuel Gauge -->
+  
+  <!-- Fuel Gauge (top right) -->
   <circle cx="380" cy="130" r="50" fill="#1f2937" stroke="#4f46e5" stroke-width="3"/>
   <path d="M340 130 A40 40 0 0 1 420 130" fill="none" stroke="url(#gaugeGradient)" stroke-width="8" stroke-linecap="round"/>
+  
+  <!-- Gauge Needle -->
   <line x1="380" y1="130" x2="400" y2="110" stroke="#ef4444" stroke-width="4" stroke-linecap="round"/>
   <circle cx="380" cy="130" r="6" fill="#ffffff"/>
-  <!-- Fuel Drop -->
-  <path d="M132 100 C132 100 100 140 100 160 C100 180 115 195 132 195 C149 195 164 180 164 160 C164 140 132 100 132 100 Z" fill="#10b981"/>
+  
+  <!-- Fuel Drop Icon (top left) -->
+  <path d="M132 100 C132 100 100 140 100 160 C100 180 115 195 132 195 C149 195 164 180 164 160 C164 140 132 100 132 100 Z" 
+        fill="#10b981"/>
   <ellipse cx="120" cy="150" rx="8" ry="12" fill="#ffffff" opacity="0.4"/>
-  <!-- Chart -->
-  <polyline points="140,420 180,400 220,410 260,380 300,390 340,360 380,370" fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Chart Line (bottom) -->
+  <polyline points="140,420 180,400 220,410 260,380 300,390 340,360 380,370" 
+            fill="none" stroke="#10b981" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Chart Dots -->
+  <circle cx="140" cy="420" r="6" fill="#10b981"/>
+  <circle cx="180" cy="400" r="6" fill="#10b981"/>
+  <circle cx="220" cy="410" r="6" fill="#10b981"/>
   <circle cx="260" cy="380" r="6" fill="#10b981"/>
+  <circle cx="300" cy="390" r="6" fill="#10b981"/>
   <circle cx="340" cy="360" r="6" fill="#10b981"/>
   <circle cx="380" cy="370" r="6" fill="#10b981"/>
 </svg>

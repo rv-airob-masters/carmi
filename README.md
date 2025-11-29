@@ -1,12 +1,22 @@
-# 🚗 Car Mileage Tracker (CARMI)
+<p align="center">
+  <img src="public/logo.svg" alt="CARMI Logo" width="180" height="180">
+</p>
 
-A lightweight, modern, mobile-first Progressive Web App (PWA) for tracking car fuel efficiency and mileage. Built with React, TypeScript, and Tailwind CSS, this app works offline and can be installed on any device.
+<h1 align="center">🚗 Car Mileage Tracker (CARMI)</h1>
 
-![PWA](https://img.shields.io/badge/PWA-Ready-blueviolet)
-![React](https://img.shields.io/badge/React-18-61DAFB?logo=react)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss)
-![Vite](https://img.shields.io/badge/Vite-7-646CFF?logo=vite)
+<p align="center">
+  A lightweight, modern, mobile-first Progressive Web App (PWA) for tracking car fuel efficiency and mileage.<br>
+  Built with React, TypeScript, and Tailwind CSS, this app works offline and can be installed on any device.
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/PWA-Ready-blueviolet" alt="PWA">
+  <img src="https://img.shields.io/badge/React-18-61DAFB?logo=react" alt="React">
+  <img src="https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript" alt="TypeScript">
+  <img src="https://img.shields.io/badge/Tailwind-4-06B6D4?logo=tailwindcss" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/Vite-7-646CFF?logo=vite" alt="Vite">
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License: MIT">
+</p>
 
 ---
 
@@ -20,7 +30,7 @@ A lightweight, modern, mobile-first Progressive Web App (PWA) for tracking car f
 - [Testing](#-testing)
 - [Deployment](#-deployment)
 - [API Schema](#-api-schema)
-- [Screenshots](#-screenshots)
+- [Future Enhancements](#-future-enhancements)
 - [License](#-license)
 
 ---
@@ -389,20 +399,6 @@ const LITERS_TO_GALLONS = 0.219969;
 
 ---
 
-## 📸 Screenshots
-
-### Mobile View
-- **Dashboard** - Statistics and mileage chart
-- **Add Entry** - Form with image upload
-- **History** - Scrollable entry list with edit/delete
-- **Settings** - Theme and unit preferences
-
-### Desktop View
-- Responsive layout adapts to larger screens
-- Same functionality with expanded viewing area
-
----
-
 ## 🔮 Future Enhancements
 
 - [ ] **Multi-vehicle Support** - Track multiple cars
@@ -416,13 +412,15 @@ const LITERS_TO_GALLONS = 0.219969;
 
 ## 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ---
 
 ## 👨‍💻 Author
 
 Built with ❤️ for efficient car mileage tracking.
+
+**Repository:** [github.com/rv-airob-masters/carmi](https://github.com/rv-airob-masters/carmi)
 
 ---
 
