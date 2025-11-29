@@ -8,6 +8,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 // Database types
 export interface SupabaseMileageEntry {
   id: string;
+  user_id: string;
   date: string;
   miles: number;
   liters: number;

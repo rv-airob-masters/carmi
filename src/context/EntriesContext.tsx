@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import type { MileageEntry, MileageEntryInput } from '../types';
 import { getAllEntries, addEntry as dbAddEntry, deleteEntry as dbDeleteEntry, updateEntry as dbUpdateEntry, db } from '../db/database';
 import { supabaseEntries, type SupabaseMileageEntry } from '../lib/supabase';
+import { useAuth } from './AuthContext';
 
 interface EntriesContextType {
   entries: MileageEntry[];
@@ -31,9 +32,10 @@ const supabaseToLocal = (entry: SupabaseMileageEntry): MileageEntry => ({
   updatedAt: entry.updated_at
 });
 
-// Convert local MileageEntry to Supabase format
-const localToSupabase = (entry: MileageEntry): Omit<SupabaseMileageEntry, 'created_at' | 'updated_at'> => ({
+// Convert local MileageEntry to Supabase format (with user_id)
+const localToSupabase = (entry: MileageEntry, userId: string): Omit<SupabaseMileageEntry, 'created_at' | 'updated_at'> => ({
   id: entry.id,
+  user_id: userId,
   date: entry.date,
   miles: entry.miles,
   liters: entry.liters,
@@ -49,6 +51,7 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const { user } = useAuth();
 
   // Monitor online status
   useEffect(() => {
@@ -64,20 +67,20 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Sync with Supabase when coming back online
+  // Sync with Supabase when coming back online or user changes
   useEffect(() => {
-    if (isOnline && !isLoading) {
+    if (isOnline && !isLoading && user) {
       syncWithCloud();
     }
-  }, [isOnline]);
+  }, [isOnline, user]);
 
   const syncWithCloud = async () => {
-    if (!isOnline) return;
+    if (!isOnline || !user) return;
 
     try {
       setIsSyncing(true);
 
-      // Fetch from Supabase
+      // Fetch from Supabase (RLS ensures only user's entries)
       const cloudEntries = await supabaseEntries.getAll();
       const localEntries = await getAllEntries();
 
@@ -89,7 +92,7 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
       for (const localEntry of localEntries) {
         if (!cloudMap.has(localEntry.id)) {
           try {
-            await supabaseEntries.add(localToSupabase(localEntry));
+            await supabaseEntries.add(localToSupabase(localEntry, user.id));
           } catch (err) {
             console.error('Failed to sync local entry to cloud:', err);
           }
@@ -158,10 +161,10 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
     const newEntry = await dbAddEntry(input);
     setEntries(prev => [newEntry, ...prev]);
 
-    // Sync to Supabase if online
-    if (isOnline) {
+    // Sync to Supabase if online and user is authenticated
+    if (isOnline && user) {
       try {
-        await supabaseEntries.add(localToSupabase(newEntry));
+        await supabaseEntries.add(localToSupabase(newEntry, user.id));
       } catch (err) {
         console.error('Failed to sync new entry to cloud:', err);
         // Entry is still saved locally, will sync later
@@ -169,7 +172,7 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
     }
 
     return newEntry;
-  }, [isOnline]);
+  }, [isOnline, user]);
 
   const deleteEntry = useCallback(async (id: string) => {
     // Delete from local IndexedDB first

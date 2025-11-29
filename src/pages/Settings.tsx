@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Card, { CardBody, CardHeader } from '../components/Card';
 import Toggle from '../components/Toggle';
 import { useSettings } from '../context/SettingsContext';
+import { useAuth } from '../context/AuthContext';
 import { getDatabaseInfo } from '../db/database';
 
 interface DbInfo {
@@ -12,8 +14,11 @@ interface DbInfo {
 
 export default function Settings() {
   const { settings, toggleTheme, toggleUnit } = useSettings();
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [dbInfo, setDbInfo] = useState<DbInfo | null>(null);
   const [showDebug, setShowDebug] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   useEffect(() => {
     async function loadDbInfo() {
@@ -22,6 +27,18 @@ export default function Settings() {
     }
     loadDbInfo();
   }, []);
+
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await signOut();
+      navigate('/login');
+    } catch (err) {
+      console.error('Logout failed:', err);
+    } finally {
+      setIsLoggingOut(false);
+    }
+  };
 
   return (
     <div className="animate-fade-in space-y-4">
@@ -86,6 +103,44 @@ export default function Settings() {
                 <p className="text-[var(--color-text-muted)]">Unit: {settings.mileageUnit}</p>
               </div>
             )}
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* Account */}
+      <Card>
+        <CardHeader>
+          <h2 className="font-semibold text-[var(--color-text)]">Account</h2>
+        </CardHeader>
+        <CardBody>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-[var(--color-text)] font-medium">Email</p>
+                <p className="text-sm text-[var(--color-text-muted)]">{user?.email || 'Not signed in'}</p>
+              </div>
+              <div className="w-10 h-10 bg-[var(--color-primary)] rounded-full flex items-center justify-center">
+                <span className="text-white font-semibold text-lg">
+                  {user?.email?.charAt(0).toUpperCase() || '?'}
+                </span>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="w-full py-3 px-4 bg-red-500 hover:bg-red-600 disabled:bg-red-300 text-white font-medium rounded-lg transition flex items-center justify-center gap-2"
+            >
+              {isLoggingOut ? (
+                'Logging out...'
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Sign Out
+                </>
+              )}
+            </button>
           </div>
         </CardBody>
       </Card>
