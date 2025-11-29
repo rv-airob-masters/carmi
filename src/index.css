@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/* Custom CSS Variables */
+:root {
+  --color-primary: #3b82f6;
+  --color-primary-dark: #2563eb;
+  --color-secondary: #10b981;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
+  --color-error: #ef4444;
+  --color-success: #22c55e;
+
+  /* Pastel colors for tiles */
+  --color-pastel-blue: #dbeafe;
+  --color-pastel-blue-text: #1e40af;
+  --color-pastel-green: #dcfce7;
+  --color-pastel-green-text: #166534;
+  --color-pastel-purple: #f3e8ff;
+  --color-pastel-purple-text: #6b21a8;
+  --color-pastel-orange: #ffedd5;
+  --color-pastel-orange-text: #c2410c;
+  --color-pastel-pink: #fce7f3;
+  --color-pastel-pink-text: #be185d;
+  --color-pastel-teal: #ccfbf1;
+  --color-pastel-teal-text: #115e59;
+  --color-pastel-yellow: #fef9c3;
+  --color-pastel-yellow-text: #a16207;
+}
+
+.dark {
+  --color-primary: #60a5fa;
+  --color-primary-dark: #3b82f6;
+  --color-secondary: #34d399;
+  --color-background: #0f172a;
+  --color-surface: #1e293b;
+  --color-text: #f1f5f9;
+  --color-text-muted: #94a3b8;
+  --color-border: #334155;
+  --color-error: #f87171;
+  --color-success: #4ade80;
+
+  /* Pastel colors for tiles (darker variants for dark mode) */
+  --color-pastel-blue: #1e3a5f;
+  --color-pastel-blue-text: #93c5fd;
+  --color-pastel-green: #14532d;
+  --color-pastel-green-text: #86efac;
+  --color-pastel-purple: #3b0764;
+  --color-pastel-purple-text: #d8b4fe;
+  --color-pastel-orange: #431407;
+  --color-pastel-orange-text: #fdba74;
+  --color-pastel-pink: #500724;
+  --color-pastel-pink-text: #f9a8d4;
+  --color-pastel-teal: #134e4a;
+  --color-pastel-teal-text: #5eead4;
+  --color-pastel-yellow: #422006;
+  --color-pastel-yellow-text: #fde047;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Smooth transitions for theme changes */
+.theme-transition * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease !important;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-text-muted);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-primary);
+}
+
+/* Animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+.animate-bounce {
+  animation: bounce 0.6s ease-in-out infinite;
+}
+
+/* Safe area for PWA */
+@supports (padding: env(safe-area-inset-bottom)) {
+  nav {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
