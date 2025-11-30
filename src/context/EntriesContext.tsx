@@ -123,24 +123,44 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
       setIsLoading(true);
       setError(null);
 
-      if (isOnline) {
-        // Try to fetch from Supabase first
+      if (isOnline && user) {
+        // Try to fetch from Supabase and merge with local data
         try {
+          // First, get both cloud and local entries
           const cloudEntries = await supabaseEntries.getAll();
-          const localEntries = cloudEntries.map(supabaseToLocal);
+          const localDbEntries = await getAllEntries();
 
-          // Update local IndexedDB with cloud data
+          // Create map for cloud entries lookup
+          const cloudMap = new Map(cloudEntries.map(e => [e.id, e]));
+
+          // Push local-only entries to cloud FIRST (before any clearing)
+          for (const localEntry of localDbEntries) {
+            if (!cloudMap.has(localEntry.id)) {
+              try {
+                console.log('Syncing offline entry to cloud:', localEntry.id);
+                await supabaseEntries.add(localToSupabase(localEntry, user.id));
+              } catch (err) {
+                console.error('Failed to sync local entry to cloud:', err);
+              }
+            }
+          }
+
+          // Now fetch updated cloud entries (including newly synced ones)
+          const updatedCloudEntries = await supabaseEntries.getAll();
+          const mergedLocalEntries = updatedCloudEntries.map(supabaseToLocal);
+
+          // Update local IndexedDB with merged data
           await db.entries.clear();
-          await db.entries.bulkAdd(localEntries);
+          await db.entries.bulkAdd(mergedLocalEntries);
 
-          setEntries(localEntries);
+          setEntries(mergedLocalEntries);
         } catch (err) {
           console.error('Failed to fetch from cloud, falling back to local:', err);
           const data = await getAllEntries();
           setEntries(data);
         }
       } else {
-        // Offline: use local IndexedDB
+        // Offline or not logged in: use local IndexedDB
         const data = await getAllEntries();
         setEntries(data);
       }
@@ -150,7 +170,7 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  }, [isOnline]);
+  }, [isOnline, user]);
 
   useEffect(() => {
     refreshEntries();
