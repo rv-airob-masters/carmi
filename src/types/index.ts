@@ -8,6 +8,7 @@ export interface MileageEntry {
   date: string; // ISO date string
   mileageKmPerL: number;
   mileageMilesPerGallon: number;
+  milesPerPound: number; // Miles you can drive per £1 spent
   image?: string; // Base64 encoded image
   createdAt: string;
   updatedAt: string;

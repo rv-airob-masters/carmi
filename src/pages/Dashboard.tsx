@@ -39,10 +39,12 @@ export default function Dashboard() {
   const totalMiles = entries.reduce((sum, e) => sum + e.miles, 0);
   const totalLiters = entries.reduce((sum, e) => sum + e.liters, 0);
   const totalCost = entries.reduce((sum, e) => sum + (e.pricePence * e.liters), 0);
-  
+
   const avgMileage = settings.mileageUnit === 'km/l'
     ? entries.reduce((sum, e) => sum + e.mileageKmPerL, 0) / entries.length
     : entries.reduce((sum, e) => sum + e.mileageMilesPerGallon, 0) / entries.length;
+
+  const avgMilesPerPound = entries.reduce((sum, e) => sum + (e.milesPerPound || 0), 0) / entries.length;
 
   const bestEntry = entries.reduce((best, e) => {
     const currentValue = settings.mileageUnit === 'km/l' ? e.mileageKmPerL : e.mileageMilesPerGallon;
@@ -68,23 +70,36 @@ export default function Dashboard() {
           <p className="text-xs font-medium text-[var(--color-pastel-blue-text)] opacity-80">Total Miles</p>
           <p className="text-2xl font-bold text-[var(--color-pastel-blue-text)]">{totalMiles.toFixed(0)}</p>
         </div>
-        
+
         {/* Total Liters */}
         <div className="rounded-xl p-4 bg-[var(--color-pastel-green)]">
           <p className="text-xs font-medium text-[var(--color-pastel-green-text)] opacity-80">Total Liters</p>
           <p className="text-2xl font-bold text-[var(--color-pastel-green-text)]">{totalLiters.toFixed(1)}</p>
         </div>
-        
+
         {/* Total Cost */}
         <div className="rounded-xl p-4 bg-[var(--color-pastel-orange)]">
           <p className="text-xs font-medium text-[var(--color-pastel-orange-text)] opacity-80">Total Spent</p>
           <p className="text-2xl font-bold text-[var(--color-pastel-orange-text)]">{formatPrice(totalCost)}</p>
         </div>
-        
+
         {/* Average Mileage */}
         <div className="rounded-xl p-4 bg-[var(--color-pastel-purple)]">
           <p className="text-xs font-medium text-[var(--color-pastel-purple-text)] opacity-80">Average</p>
           <p className="text-2xl font-bold text-[var(--color-pastel-purple-text)]">{avgMileage.toFixed(1)} <span className="text-sm">{settings.mileageUnit}</span></p>
+        </div>
+      </div>
+
+      {/* Miles per Pound - Full width */}
+      <div className="rounded-xl p-4 bg-gradient-to-r from-[var(--color-pastel-teal)] to-[var(--color-pastel-green)]">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-xs font-medium text-[var(--color-pastel-teal-text)] opacity-80">Average Miles per £1</p>
+            <p className="text-3xl font-bold text-[var(--color-pastel-teal-text)]">{avgMilesPerPound.toFixed(2)} <span className="text-lg">mi/£</span></p>
+          </div>
+          <div className="w-14 h-14 rounded-full bg-white/30 flex items-center justify-center">
+            <span className="text-2xl font-bold text-[var(--color-pastel-teal-text)]">£</span>
+          </div>
         </div>
       </div>
 

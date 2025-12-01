@@ -27,6 +27,7 @@ const supabaseToLocal = (entry: SupabaseMileageEntry): MileageEntry => ({
   pricePence: entry.price_per_liter,
   mileageKmPerL: entry.mileage_km_per_l,
   mileageMilesPerGallon: entry.mileage_mpg,
+  milesPerPound: entry.miles_per_pound || 0,
   image: entry.image || undefined,
   createdAt: entry.created_at,
   updatedAt: entry.updated_at
@@ -42,6 +43,7 @@ const localToSupabase = (entry: MileageEntry, userId: string): Omit<SupabaseMile
   price_per_liter: entry.pricePence,
   mileage_km_per_l: entry.mileageKmPerL,
   mileage_mpg: entry.mileageMilesPerGallon,
+  miles_per_pound: entry.milesPerPound,
   image: entry.image || null
 });
 
@@ -225,6 +227,7 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
             price_per_liter: updated.pricePence,
             mileage_km_per_l: updated.mileageKmPerL,
             mileage_mpg: updated.mileageMilesPerGallon,
+            miles_per_pound: updated.milesPerPound,
             image: updated.image || null
           });
         } catch (err) {

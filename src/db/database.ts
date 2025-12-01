@@ -15,22 +15,28 @@ db.version(1).stores({
 });
 
 // Calculate mileage values
-export function calculateMileage(miles: number, liters: number) {
+export function calculateMileage(miles: number, liters: number, pricePerLiter: number) {
   const km = miles * MILES_TO_KM;
   const kmPerL = km / liters;
   const mpg = miles / (liters * LITERS_TO_GALLONS);
-  
+
+  // Miles per pound = Miles / Total cost in pounds
+  // Price is in pence, so divide by 100 to convert to pounds
+  const totalCostInPounds = (liters * pricePerLiter) / 100;
+  const milesPerPound = totalCostInPounds > 0 ? miles / totalCostInPounds : 0;
+
   return {
     mileageKmPerL: Math.round(kmPerL * 100) / 100,
-    mileageMilesPerGallon: Math.round(mpg * 100) / 100
+    mileageMilesPerGallon: Math.round(mpg * 100) / 100,
+    milesPerPound: Math.round(milesPerPound * 100) / 100
   };
 }
 
 // Entry CRUD operations
 export async function addEntry(input: MileageEntryInput): Promise<MileageEntry> {
   const now = new Date().toISOString();
-  const mileage = calculateMileage(input.miles, input.liters);
-  
+  const mileage = calculateMileage(input.miles, input.liters, input.pricePence);
+
   const entry: MileageEntry = {
     id: uuidv4(),
     ...input,
@@ -38,7 +44,7 @@ export async function addEntry(input: MileageEntryInput): Promise<MileageEntry> 
     createdAt: now,
     updatedAt: now
   };
-  
+
   await db.entries.add(entry);
   return entry;
 }
@@ -54,17 +60,18 @@ export async function getEntryById(id: string): Promise<MileageEntry | undefined
 export async function updateEntry(id: string, input: Partial<MileageEntryInput>): Promise<MileageEntry | undefined> {
   const existing = await db.entries.get(id);
   if (!existing) return undefined;
-  
+
   const miles = input.miles ?? existing.miles;
   const liters = input.liters ?? existing.liters;
-  const mileage = calculateMileage(miles, liters);
-  
+  const pricePerLiter = input.pricePence ?? existing.pricePence;
+  const mileage = calculateMileage(miles, liters, pricePerLiter);
+
   const updates = {
     ...input,
     ...mileage,
     updatedAt: new Date().toISOString()
   };
-  
+
   await db.entries.update(id, updates);
   return { ...existing, ...updates };
 }

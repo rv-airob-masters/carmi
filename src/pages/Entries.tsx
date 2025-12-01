@@ -51,6 +51,7 @@ export default function Entries() {
   const avgMileage = settings.mileageUnit === 'km/l'
     ? entries.reduce((sum, e) => sum + e.mileageKmPerL, 0) / entries.length
     : entries.reduce((sum, e) => sum + e.mileageMilesPerGallon, 0) / entries.length;
+  const avgMilesPerPound = entries.reduce((sum, e) => sum + (e.milesPerPound || 0), 0) / entries.length;
 
   // Sort entries by date descending (latest first)
   const sortedEntries = [...entries].sort((a, b) =>
@@ -74,7 +75,7 @@ export default function Entries() {
       {/* Summary with pastel tiles */}
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-3 px-1">SUMMARY</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 gap-3">
           {/* Entries tile - Blue */}
           <div className="rounded-xl p-4 text-center bg-[var(--color-pastel-blue)]">
             <p className="text-2xl font-bold text-[var(--color-pastel-blue-text)]">{entries.length}</p>
@@ -85,10 +86,15 @@ export default function Entries() {
             <p className="text-2xl font-bold text-[var(--color-pastel-green-text)]">{totalMiles.toFixed(0)}</p>
             <p className="text-xs font-medium text-[var(--color-pastel-green-text)] opacity-80">Total Miles</p>
           </div>
-          {/* Average tile - Purple */}
+          {/* Average mileage tile - Purple */}
           <div className="rounded-xl p-4 text-center bg-[var(--color-pastel-purple)]">
             <p className="text-2xl font-bold text-[var(--color-pastel-purple-text)]">{avgMileage.toFixed(1)}</p>
             <p className="text-xs font-medium text-[var(--color-pastel-purple-text)] opacity-80">Avg {settings.mileageUnit}</p>
+          </div>
+          {/* Miles per pound tile - Orange */}
+          <div className="rounded-xl p-4 text-center bg-[var(--color-pastel-orange)]">
+            <p className="text-2xl font-bold text-[var(--color-pastel-orange-text)]">{avgMilesPerPound.toFixed(2)}</p>
+            <p className="text-xs font-medium text-[var(--color-pastel-orange-text)] opacity-80">Avg mi/£</p>
           </div>
         </div>
       </div>

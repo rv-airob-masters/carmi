@@ -15,6 +15,7 @@ export interface SupabaseMileageEntry {
   price_per_liter: number;
   mileage_km_per_l: number;
   mileage_mpg: number;
+  miles_per_pound: number;
   image: string | null;
   created_at: string;
   updated_at: string;

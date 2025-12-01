@@ -106,17 +106,31 @@ export default function MileageCard({ entry, onDelete, colorIndex = 0 }: Mileage
             </div>
           </div>
 
-          {/* Mileage badge */}
-          <div
-            className="rounded-lg px-3 py-2 inline-flex items-center gap-2"
-            style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" style={{ color: colorScheme.text }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            <span className="font-bold" style={{ color: colorScheme.text }}>
-              {formatMileage(mileageValue, settings.mileageUnit)}
-            </span>
+          {/* Mileage badges */}
+          <div className="flex flex-wrap gap-2">
+            {/* Fuel efficiency badge */}
+            <div
+              className="rounded-lg px-3 py-2 inline-flex items-center gap-2"
+              style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" style={{ color: colorScheme.text }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              <span className="font-bold" style={{ color: colorScheme.text }}>
+                {formatMileage(mileageValue, settings.mileageUnit)}
+              </span>
+            </div>
+
+            {/* Miles per pound badge */}
+            <div
+              className="rounded-lg px-3 py-2 inline-flex items-center gap-2"
+              style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
+            >
+              <span className="text-sm font-bold" style={{ color: colorScheme.text }}>£</span>
+              <span className="font-bold" style={{ color: colorScheme.text }}>
+                {entry.milesPerPound?.toFixed(2) || '0.00'} mi/£
+              </span>
+            </div>
           </div>
         </div>
       </div>
