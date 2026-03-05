@@ -5,6 +5,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   error?: string;
   helperText?: string;
   icon?: React.ReactNode;
+  labelAction?: React.ReactNode;
 }
 
 export default function Input({
@@ -12,6 +13,7 @@ export default function Input({
   error,
   helperText,
   icon,
+  labelAction,
   className = '',
   id,
   ...props
@@ -20,12 +22,15 @@ export default function Input({
 
   return (
     <div className={`mb-4 ${className}`}>
-      <label
-        htmlFor={inputId}
-        className="block text-sm font-medium text-[var(--color-text)] mb-1.5"
-      >
-        {label}
-      </label>
+      <div className="flex items-center justify-between mb-1.5">
+        <label
+          htmlFor={inputId}
+          className="block text-sm font-medium text-[var(--color-text)]"
+        >
+          {label}
+        </label>
+        {labelAction && <div>{labelAction}</div>}
+      </div>
       <div className="relative">
         {icon && (
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[var(--color-text-muted)]">

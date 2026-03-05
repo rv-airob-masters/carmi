@@ -5,6 +5,7 @@ interface ValidationInput {
   liters: string;
   pricePence: string;
   date: string;
+  distanceUnit?: 'miles' | 'km';
 }
 
 /**
@@ -13,14 +14,17 @@ interface ValidationInput {
 export function validateMileageEntry(input: ValidationInput): FormErrors {
   const errors: FormErrors = {};
 
-  // Validate miles
+  // Validate distance (miles or km)
+  const distanceUnit = input.distanceUnit ?? 'miles';
+  const distanceLabel = distanceUnit === 'km' ? 'Kilometers' : 'Miles';
+  const distanceMax = distanceUnit === 'km' ? 16093 : 10000;
   const miles = parseFloat(input.miles);
   if (!input.miles || input.miles.trim() === '') {
-    errors.miles = 'Miles is required';
+    errors.miles = `${distanceLabel} driven is required`;
   } else if (isNaN(miles) || miles <= 0) {
-    errors.miles = 'Miles must be a positive number';
-  } else if (miles > 10000) {
-    errors.miles = 'Miles seems too high. Please check.';
+    errors.miles = `${distanceLabel} must be a positive number`;
+  } else if (miles > distanceMax) {
+    errors.miles = `${distanceLabel} seems too high. Please check.`;
   }
 
   // Validate liters

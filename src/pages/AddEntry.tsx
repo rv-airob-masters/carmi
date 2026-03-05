@@ -8,12 +8,16 @@ import { useEntries } from '../context/EntriesContext';
 import { validateMileageEntry, hasErrors } from '../utils/validation';
 import { getTodayDate } from '../utils/formatters';
 import type { FormErrors } from '../types';
+import { MILES_TO_KM } from '../types';
+
+type DistanceUnit = 'miles' | 'km';
 
 export default function AddEntry() {
   const navigate = useNavigate();
   const { addEntry } = useEntries();
   
-  const [miles, setMiles] = useState('');
+  const [distance, setDistance] = useState('');
+  const [distanceUnit, setDistanceUnit] = useState<DistanceUnit>('miles');
   const [liters, setLiters] = useState('');
   const [pricePence, setPricePence] = useState('');
   const [date, setDate] = useState(getTodayDate());
@@ -22,20 +26,31 @@ export default function AddEntry() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const handleUnitToggle = (unit: DistanceUnit) => {
+    setDistanceUnit(unit);
+    setDistance('');
+    setErrors((prev) => ({ ...prev, miles: undefined }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    const validationErrors = validateMileageEntry({ miles, liters, pricePence, date });
+
+    const validationErrors = validateMileageEntry({ miles: distance, liters, pricePence, date, distanceUnit });
     setErrors(validationErrors);
-    
+
     if (hasErrors(validationErrors)) {
       return;
     }
 
+    // Convert km → miles before storing (DB always stores miles)
+    const milesValue = distanceUnit === 'km'
+      ? parseFloat(distance) / MILES_TO_KM
+      : parseFloat(distance);
+
     try {
       setIsSubmitting(true);
       await addEntry({
-        miles: parseFloat(miles),
+        miles: milesValue,
         liters: parseFloat(liters),
         pricePence: parseFloat(pricePence),
         date,
@@ -46,7 +61,8 @@ export default function AddEntry() {
       setShowSuccess(true);
       
       // Reset form
-      setMiles('');
+      setDistance('');
+      setDistanceUnit('miles');
       setLiters('');
       setPricePence('');
       setDate(getTodayDate());
@@ -85,14 +101,40 @@ export default function AddEntry() {
         <CardBody>
           <form onSubmit={handleSubmit}>
             <Input
-              label="Miles Driven"
+              label={distanceUnit === 'km' ? 'Kilometers Driven' : 'Miles Driven'}
               type="number"
               step="0.1"
               min="0"
-              placeholder="e.g., 250"
-              value={miles}
-              onChange={(e) => setMiles(e.target.value)}
+              placeholder={distanceUnit === 'km' ? 'e.g., 400' : 'e.g., 250'}
+              value={distance}
+              onChange={(e) => setDistance(e.target.value)}
               error={errors.miles}
+              labelAction={
+                <div className="flex items-center rounded-full border border-[var(--color-border)] overflow-hidden text-xs font-medium">
+                  <button
+                    type="button"
+                    onClick={() => handleUnitToggle('miles')}
+                    className={`px-3 py-1 transition-colors duration-150 ${
+                      distanceUnit === 'miles'
+                        ? 'bg-[var(--color-primary)] text-white'
+                        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)]'
+                    }`}
+                  >
+                    mi
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleUnitToggle('km')}
+                    className={`px-3 py-1 transition-colors duration-150 ${
+                      distanceUnit === 'km'
+                        ? 'bg-[var(--color-primary)] text-white'
+                        : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)]'
+                    }`}
+                  >
+                    km
+                  </button>
+                </div>
+              }
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
