@@ -13,6 +13,7 @@ import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
 import RegionSetup from './pages/RegionSetup';
+import Help from './pages/Help';
 
 function App() {
   return (
@@ -44,6 +45,7 @@ function App() {
                 <Route path="entries/edit/:id" element={<EditEntry />} />
                 <Route path="dashboard" element={<Dashboard />} />
                 <Route path="settings" element={<Settings />} />
+                <Route path="help" element={<Help />} />
               </Route>
             </Routes>
           </EntriesProvider>

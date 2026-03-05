@@ -3,7 +3,9 @@ import { useLocation } from 'react-router-dom';
 const pageTitles: Record<string, string> = {
   '/': 'Add Entry',
   '/entries': 'Mileage History',
-  '/settings': 'Settings'
+  '/dashboard': 'Dashboard',
+  '/settings': 'Settings',
+  '/help': 'Help'
 };
 
 export default function Header() {
