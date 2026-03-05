@@ -2,14 +2,14 @@
 
 export interface MileageEntry {
   id: string;
-  miles: number;
+  miles: number;          // always stored in miles
   liters: number;
-  pricePence: number;
-  date: string; // ISO date string
+  pricePerLiter: number;  // full currency value (e.g. 1.45 for £1.45/L or 105 for ₹105/L)
+  date: string;           // ISO date string
   mileageKmPerL: number;
   mileageMilesPerGallon: number;
-  milesPerPound: number; // Miles you can drive per £1 spent
-  image?: string; // Base64 encoded image
+  milesPerCurrency: number; // miles per 1 unit of the chosen currency
+  image?: string;           // Base64 encoded image
   createdAt: string;
   updatedAt: string;
 }
@@ -17,24 +17,39 @@ export interface MileageEntry {
 export interface MileageEntryInput {
   miles: number;
   liters: number;
-  pricePence: number;
+  pricePerLiter: number;
   date: string;
   image?: string;
 }
 
-export type MileageUnit = 'km/l' | 'mpg';
+export type DistanceUnit  = 'miles' | 'km';
+export type MileageUnit   = 'km/l' | 'mpg';
+export type Currency      = 'GBP' | 'USD' | 'INR';
+export type ThemeMode     = 'light' | 'dark';
 
-export type ThemeMode = 'light' | 'dark';
+export const CURRENCY_SYMBOLS: Record<Currency, string> = {
+  GBP: '£',
+  USD: '$',
+  INR: '₹',
+};
+
+export const CURRENCY_NAMES: Record<Currency, string> = {
+  GBP: 'British Pound (£)',
+  USD: 'US Dollar ($)',
+  INR: 'Indian Rupee (₹)',
+};
 
 export interface AppSettings {
+  distanceUnit: DistanceUnit;
   mileageUnit: MileageUnit;
+  currency: Currency;
   theme: ThemeMode;
 }
 
 export interface FormErrors {
   miles?: string;
   liters?: string;
-  pricePence?: string;
+  price?: string;
   date?: string;
   image?: string;
 }

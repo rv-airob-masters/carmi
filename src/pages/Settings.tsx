@@ -5,6 +5,38 @@ import Toggle from '../components/Toggle';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import { getDatabaseInfo } from '../db/database';
+import type { DistanceUnit, MileageUnit, Currency } from '../types';
+import { CURRENCY_NAMES } from '../types';
+
+// Reusable pill-group selector
+function PillGroup<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: T; label: string }[];
+  value: T;
+  onChange: (v: T) => void;
+}) {
+  return (
+    <div className="flex rounded-lg border border-[var(--color-border)] overflow-hidden text-sm font-medium w-full">
+      {options.map((opt) => (
+        <button
+          key={opt.value}
+          type="button"
+          onClick={() => onChange(opt.value)}
+          className={`flex-1 py-2 px-3 transition-colors duration-150 ${
+            value === opt.value
+              ? 'bg-[var(--color-primary)] text-white'
+              : 'text-[var(--color-text-muted)] hover:bg-[var(--color-surface-hover)]'
+          }`}
+        >
+          {opt.label}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 interface DbInfo {
   entryCount: number;
@@ -13,7 +45,7 @@ interface DbInfo {
 }
 
 export default function Settings() {
-  const { settings, toggleTheme, toggleUnit } = useSettings();
+  const { settings, toggleTheme, setDistanceUnit, setMileageUnit, setCurrency } = useSettings();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [dbInfo, setDbInfo] = useState<DbInfo | null>(null);
@@ -57,18 +89,51 @@ export default function Settings() {
         </CardBody>
       </Card>
 
-      {/* Units */}
+      {/* Units & Currency */}
       <Card>
         <CardHeader>
-          <h2 className="font-semibold text-[var(--color-text)]">Units</h2>
+          <h2 className="font-semibold text-[var(--color-text)]">Units &amp; Currency</h2>
         </CardHeader>
         <CardBody>
-          <Toggle
-            enabled={settings.mileageUnit === 'mpg'}
-            onChange={toggleUnit}
-            label="Miles per Gallon"
-            description={`Currently showing: ${settings.mileageUnit === 'km/l' ? 'Kilometers per Liter' : 'Miles per Gallon'}`}
-          />
+          <div className="space-y-5">
+            {/* Distance */}
+            <div>
+              <p className="text-sm font-medium text-[var(--color-text)] mb-2">Distance</p>
+              <PillGroup<DistanceUnit>
+                options={[
+                  { value: 'miles', label: 'Miles (mi)' },
+                  { value: 'km', label: 'Kilometers (km)' },
+                ]}
+                value={settings.distanceUnit}
+                onChange={setDistanceUnit}
+              />
+            </div>
+            {/* Fuel Efficiency */}
+            <div>
+              <p className="text-sm font-medium text-[var(--color-text)] mb-2">Fuel Efficiency</p>
+              <PillGroup<MileageUnit>
+                options={[
+                  { value: 'km/l', label: 'km / L' },
+                  { value: 'mpg', label: 'MPG' },
+                ]}
+                value={settings.mileageUnit}
+                onChange={setMileageUnit}
+              />
+            </div>
+            {/* Currency */}
+            <div>
+              <p className="text-sm font-medium text-[var(--color-text)] mb-2">Currency</p>
+              <PillGroup<Currency>
+                options={([
+                  { value: 'GBP' as Currency, label: CURRENCY_NAMES['GBP'] },
+                  { value: 'USD' as Currency, label: CURRENCY_NAMES['USD'] },
+                  { value: 'INR' as Currency, label: CURRENCY_NAMES['INR'] },
+                ])}
+                value={settings.currency}
+                onChange={setCurrency}
+              />
+            </div>
+          </div>
         </CardBody>
       </Card>
 

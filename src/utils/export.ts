@@ -1,10 +1,15 @@
-import type { MileageEntry, MileageUnit } from '../types';
-import { formatDate, formatPrice } from './formatters';
+import type { MileageEntry, AppSettings } from '../types';
+import { MILES_TO_KM, CURRENCY_SYMBOLS } from '../types';
+import { formatDate, formatCurrency, formatPricePerLiter } from './formatters';
 
 /**
  * Export entries to CSV format
  */
-export function exportToCSV(entries: MileageEntry[], unit: MileageUnit): void {
+export function exportToCSV(entries: MileageEntry[], settings: AppSettings): void {
+  const { mileageUnit, distanceUnit, currency } = settings;
+  const distLabel = distanceUnit === 'km' ? 'km' : 'miles';
+  const currSymbol = CURRENCY_SYMBOLS[currency];
+
   // Sort by date descending
   const sortedEntries = [...entries].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -13,24 +18,36 @@ export function exportToCSV(entries: MileageEntry[], unit: MileageUnit): void {
   // CSV headers
   const headers = [
     'Date',
-    'Miles',
+    `Distance (${distLabel})`,
     'Liters',
-    'Price (pence/L)',
-    'Total Cost (£)',
-    unit === 'km/l' ? 'Mileage (km/L)' : 'Mileage (mpg)',
+    `Price/L (${currSymbol})`,
+    `Total Cost (${currSymbol})`,
+    mileageUnit === 'km/l' ? 'Mileage (km/L)' : 'Mileage (mpg)',
+    `${distLabel}/${currSymbol}`,
   ];
 
   // CSV rows
-  const rows = sortedEntries.map(entry => [
-    entry.date,
-    entry.miles.toFixed(1),
-    entry.liters.toFixed(2),
-    entry.pricePence.toFixed(1),
-    ((entry.pricePence * entry.liters) / 100).toFixed(2),
-    unit === 'km/l' 
-      ? entry.mileageKmPerL.toFixed(2) 
-      : entry.mileageMilesPerGallon.toFixed(2),
-  ]);
+  const rows = sortedEntries.map(entry => {
+    const dist = distanceUnit === 'km'
+      ? (entry.miles * MILES_TO_KM).toFixed(1)
+      : entry.miles.toFixed(1);
+    const totalCost = (entry.pricePerLiter * entry.liters).toFixed(2);
+    const distPerCurrency = distanceUnit === 'km'
+      ? (entry.milesPerCurrency * MILES_TO_KM).toFixed(2)
+      : entry.milesPerCurrency.toFixed(2);
+
+    return [
+      entry.date,
+      dist,
+      entry.liters.toFixed(2),
+      entry.pricePerLiter.toFixed(2),
+      totalCost,
+      mileageUnit === 'km/l'
+        ? entry.mileageKmPerL.toFixed(2)
+        : entry.mileageMilesPerGallon.toFixed(2),
+      distPerCurrency,
+    ];
+  });
 
   // Combine headers and rows
   const csvContent = [
@@ -45,17 +62,23 @@ export function exportToCSV(entries: MileageEntry[], unit: MileageUnit): void {
 /**
  * Export entries to PDF format (simple HTML-based PDF)
  */
-export function exportToPDF(entries: MileageEntry[], unit: MileageUnit): void {
+export function exportToPDF(entries: MileageEntry[], settings: AppSettings): void {
+  const { mileageUnit, distanceUnit, currency } = settings;
+  const distLabel = distanceUnit === 'km' ? 'km' : 'miles';
+  const currSymbol = CURRENCY_SYMBOLS[currency];
+  const effLabel = `${distLabel}/${currSymbol}`;
+
   // Sort by date descending
   const sortedEntries = [...entries].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
 
   // Calculate summary stats
-  const totalMiles = entries.reduce((sum, e) => sum + e.miles, 0);
+  const totalDistRaw = entries.reduce((sum, e) => sum + e.miles, 0);
+  const totalDist = distanceUnit === 'km' ? totalDistRaw * MILES_TO_KM : totalDistRaw;
   const totalLiters = entries.reduce((sum, e) => sum + e.liters, 0);
-  const totalCost = entries.reduce((sum, e) => sum + (e.pricePence * e.liters), 0);
-  const avgMileage = unit === 'km/l'
+  const totalCost = entries.reduce((sum, e) => sum + (e.pricePerLiter * e.liters), 0);
+  const avgMileage = mileageUnit === 'km/l'
     ? entries.reduce((sum, e) => sum + e.mileageKmPerL, 0) / entries.length
     : entries.reduce((sum, e) => sum + e.mileageMilesPerGallon, 0) / entries.length;
 
@@ -83,15 +106,15 @@ export function exportToPDF(entries: MileageEntry[], unit: MileageUnit): void {
 <body>
   <h1>🚗 Car Mileage Report</h1>
   <p>Generated: ${new Date().toLocaleDateString()}</p>
-  
+
   <div class="summary">
     <div class="stat">
       <div class="stat-label">Total Entries</div>
       <div class="stat-value">${entries.length}</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Total Miles</div>
-      <div class="stat-value">${totalMiles.toFixed(0)}</div>
+      <div class="stat-label">Total ${distLabel}</div>
+      <div class="stat-value">${totalDist.toFixed(0)}</div>
     </div>
     <div class="stat">
       <div class="stat-label">Total Liters</div>
@@ -99,10 +122,10 @@ export function exportToPDF(entries: MileageEntry[], unit: MileageUnit): void {
     </div>
     <div class="stat">
       <div class="stat-label">Total Spent</div>
-      <div class="stat-value">${formatPrice(totalCost)}</div>
+      <div class="stat-value">${formatCurrency(totalCost, currency)}</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Avg ${unit}</div>
+      <div class="stat-label">Avg ${mileageUnit}</div>
       <div class="stat-value">${avgMileage.toFixed(1)}</div>
     </div>
   </div>
@@ -111,24 +134,33 @@ export function exportToPDF(entries: MileageEntry[], unit: MileageUnit): void {
     <thead>
       <tr>
         <th>Date</th>
-        <th>Miles</th>
+        <th>${distLabel}</th>
         <th>Liters</th>
-        <th>Price (p/L)</th>
+        <th>Price/L (${currSymbol})</th>
         <th>Cost</th>
-        <th>${unit}</th>
+        <th>${mileageUnit}</th>
+        <th>${effLabel}</th>
       </tr>
     </thead>
     <tbody>
-      ${sortedEntries.map(entry => `
+      ${sortedEntries.map(entry => {
+        const dist = distanceUnit === 'km'
+          ? (entry.miles * MILES_TO_KM).toFixed(1)
+          : entry.miles.toFixed(1);
+        const distPerCurr = distanceUnit === 'km'
+          ? (entry.milesPerCurrency * MILES_TO_KM).toFixed(2)
+          : entry.milesPerCurrency.toFixed(2);
+        return `
         <tr>
           <td>${formatDate(entry.date)}</td>
-          <td>${entry.miles.toFixed(1)}</td>
+          <td>${dist}</td>
           <td>${entry.liters.toFixed(2)}</td>
-          <td>${entry.pricePence.toFixed(1)}p</td>
-          <td>${formatPrice(entry.pricePence * entry.liters)}</td>
-          <td>${(unit === 'km/l' ? entry.mileageKmPerL : entry.mileageMilesPerGallon).toFixed(2)}</td>
-        </tr>
-      `).join('')}
+          <td>${formatPricePerLiter(entry.pricePerLiter, currency)}</td>
+          <td>${formatCurrency(entry.pricePerLiter * entry.liters, currency)}</td>
+          <td>${(mileageUnit === 'km/l' ? entry.mileageKmPerL : entry.mileageMilesPerGallon).toFixed(2)}</td>
+          <td>${distPerCurr}</td>
+        </tr>`;
+      }).join('')}
     </tbody>
   </table>
 

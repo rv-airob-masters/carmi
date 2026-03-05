@@ -1,11 +1,20 @@
-import type { FormErrors } from '../types';
+import type { FormErrors, Currency, DistanceUnit } from '../types';
+import { CURRENCY_SYMBOLS } from '../types';
+
+// Max price per liter per currency (reasonable upper bounds)
+const PRICE_MAX: Record<Currency, number> = {
+  GBP: 10,    // £10/L
+  USD: 10,    // $10/L
+  INR: 500,   // ₹500/L
+};
 
 interface ValidationInput {
   miles: string;
   liters: string;
-  pricePence: string;
+  price: string;
   date: string;
-  distanceUnit?: 'miles' | 'km';
+  distanceUnit?: DistanceUnit;
+  currency?: Currency;
 }
 
 /**
@@ -37,14 +46,17 @@ export function validateMileageEntry(input: ValidationInput): FormErrors {
     errors.liters = 'Liters seems too high. Please check.';
   }
 
-  // Validate price
-  const pricePence = parseFloat(input.pricePence);
-  if (!input.pricePence || input.pricePence.trim() === '') {
-    errors.pricePence = 'Price is required';
-  } else if (isNaN(pricePence) || pricePence <= 0) {
-    errors.pricePence = 'Price must be a positive number';
-  } else if (pricePence > 500) {
-    errors.pricePence = 'Price per liter seems too high';
+  // Validate price per liter
+  const currency = input.currency ?? 'GBP';
+  const symbol = CURRENCY_SYMBOLS[currency];
+  const maxPrice = PRICE_MAX[currency];
+  const price = parseFloat(input.price);
+  if (!input.price || input.price.trim() === '') {
+    errors.price = 'Price per liter is required';
+  } else if (isNaN(price) || price <= 0) {
+    errors.price = 'Price must be a positive number';
+  } else if (price > maxPrice) {
+    errors.price = `Price per liter seems too high (max ${symbol}${maxPrice})`;
   }
 
   // Validate date

@@ -14,28 +14,43 @@ db.version(1).stores({
   settings: 'id'
 });
 
+// Version 2: migrate pricePence (integer pence) → pricePerLiter (full currency value)
+db.version(2).stores({
+  entries: 'id, date, createdAt',
+  settings: 'id'
+}).upgrade(async (tx) => {
+  await tx.table('entries').toCollection().modify((entry: Record<string, number>) => {
+    if (typeof entry['pricePence'] === 'number' && entry['pricePerLiter'] === undefined) {
+      entry['pricePerLiter'] = entry['pricePence'] / 100;
+    }
+    if (typeof entry['milesPerPound'] === 'number' && entry['milesPerCurrency'] === undefined) {
+      entry['milesPerCurrency'] = entry['milesPerPound'];
+    }
+  });
+});
+
 // Calculate mileage values
+// pricePerLiter is the full currency value (e.g. 1.45 for £1.45/L, 105 for ₹105/L)
 export function calculateMileage(miles: number, liters: number, pricePerLiter: number) {
   const km = miles * MILES_TO_KM;
   const kmPerL = km / liters;
   const mpg = miles / (liters * LITERS_TO_GALLONS);
 
-  // Miles per pound = Miles / Total cost in pounds
-  // Price is in pence, so divide by 100 to convert to pounds
-  const totalCostInPounds = (liters * pricePerLiter) / 100;
-  const milesPerPound = totalCostInPounds > 0 ? miles / totalCostInPounds : 0;
+  // Miles per currency unit = Miles / Total cost in selected currency
+  const totalCost = liters * pricePerLiter;
+  const milesPerCurrency = totalCost > 0 ? miles / totalCost : 0;
 
   return {
     mileageKmPerL: Math.round(kmPerL * 100) / 100,
     mileageMilesPerGallon: Math.round(mpg * 100) / 100,
-    milesPerPound: Math.round(milesPerPound * 100) / 100
+    milesPerCurrency: Math.round(milesPerCurrency * 100) / 100
   };
 }
 
 // Entry CRUD operations
 export async function addEntry(input: MileageEntryInput): Promise<MileageEntry> {
   const now = new Date().toISOString();
-  const mileage = calculateMileage(input.miles, input.liters, input.pricePence);
+  const mileage = calculateMileage(input.miles, input.liters, input.pricePerLiter);
 
   const entry: MileageEntry = {
     id: uuidv4(),
@@ -63,7 +78,7 @@ export async function updateEntry(id: string, input: Partial<MileageEntryInput>)
 
   const miles = input.miles ?? existing.miles;
   const liters = input.liters ?? existing.liters;
-  const pricePerLiter = input.pricePence ?? existing.pricePence;
+  const pricePerLiter = input.pricePerLiter ?? existing.pricePerLiter;
   const mileage = calculateMileage(miles, liters, pricePerLiter);
 
   const updates = {
@@ -85,7 +100,12 @@ const SETTINGS_ID = 'app-settings';
 
 export async function getSettings(): Promise<AppSettings> {
   const settings = await db.settings.get(SETTINGS_ID);
-  return settings ?? { mileageUnit: 'km/l', theme: 'light' };
+  return settings ?? {
+    distanceUnit: 'miles',
+    mileageUnit: 'km/l',
+    currency: 'GBP',
+    theme: 'light'
+  };
 }
 
 export async function updateSettings(updates: Partial<AppSettings>): Promise<AppSettings> {

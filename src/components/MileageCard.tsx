@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
-import { formatDate, formatPrice, formatPricePerLiter, formatMileage } from '../utils/formatters';
+import { formatDate, formatPricePerLiter, formatCurrency, formatMileage } from '../utils/formatters';
 import type { MileageEntry } from '../types';
+import { MILES_TO_KM, CURRENCY_SYMBOLS } from '../types';
 
 // Pastel color schemes for alternating cards
 const colorSchemes = [
@@ -26,6 +27,23 @@ export default function MileageCard({ entry, onDelete, colorIndex = 0 }: Mileage
   const mileageValue = settings.mileageUnit === 'km/l'
     ? entry.mileageKmPerL
     : entry.mileageMilesPerGallon;
+
+  // Distance display: convert stored miles → km if needed
+  const distanceValue = settings.distanceUnit === 'km'
+    ? (entry.miles * MILES_TO_KM).toFixed(1)
+    : entry.miles.toFixed(1);
+  const distanceLabel = settings.distanceUnit === 'km' ? 'Km' : 'Miles';
+
+  // Cost efficiency: stored as miles/currency; convert if km is selected
+  const distPerCurrency = settings.distanceUnit === 'km'
+    ? (entry.milesPerCurrency * MILES_TO_KM)
+    : entry.milesPerCurrency;
+  const currencySymbol = CURRENCY_SYMBOLS[settings.currency];
+  const distUnit = settings.distanceUnit === 'km' ? 'km' : 'mi';
+  const efficiencyLabel = `${distUnit}/${currencySymbol}`;
+
+  // Total cost
+  const totalCost = entry.pricePerLiter * entry.liters;
 
   const colorScheme = colorSchemes[colorIndex % colorSchemes.length];
 
@@ -89,20 +107,20 @@ export default function MileageCard({ entry, onDelete, colorIndex = 0 }: Mileage
           {/* Stats grid */}
           <div className="grid grid-cols-2 gap-2 mb-3">
             <div>
-              <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>Miles</p>
-              <p className="font-semibold" style={{ color: colorScheme.text }}>{entry.miles}</p>
+              <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>{distanceLabel}</p>
+              <p className="font-semibold" style={{ color: colorScheme.text }}>{distanceValue}</p>
             </div>
             <div>
               <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>Liters</p>
-              <p className="font-semibold" style={{ color: colorScheme.text }}>{entry.liters}</p>
+              <p className="font-semibold" style={{ color: colorScheme.text }}>{entry.liters.toFixed(2)}</p>
             </div>
             <div>
-              <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>Price</p>
-              <p className="font-semibold" style={{ color: colorScheme.text }}>{formatPricePerLiter(entry.pricePence)}</p>
+              <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>Price/L</p>
+              <p className="font-semibold" style={{ color: colorScheme.text }}>{formatPricePerLiter(entry.pricePerLiter, settings.currency)}</p>
             </div>
             <div>
               <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>Total Cost</p>
-              <p className="font-semibold" style={{ color: colorScheme.text }}>{formatPrice(entry.pricePence * entry.liters)}</p>
+              <p className="font-semibold" style={{ color: colorScheme.text }}>{formatCurrency(totalCost, settings.currency)}</p>
             </div>
           </div>
 
@@ -121,14 +139,14 @@ export default function MileageCard({ entry, onDelete, colorIndex = 0 }: Mileage
               </span>
             </div>
 
-            {/* Miles per pound badge */}
+            {/* Distance per currency badge */}
             <div
               className="rounded-lg px-3 py-2 inline-flex items-center gap-2"
               style={{ backgroundColor: 'rgba(255,255,255,0.5)' }}
             >
-              <span className="text-sm font-bold" style={{ color: colorScheme.text }}>£</span>
+              <span className="text-sm font-bold" style={{ color: colorScheme.text }}>{currencySymbol}</span>
               <span className="font-bold" style={{ color: colorScheme.text }}>
-                {entry.milesPerPound?.toFixed(2) || '0.00'} mi/£
+                {distPerCurrency.toFixed(2)} {efficiencyLabel}
               </span>
             </div>
           </div>

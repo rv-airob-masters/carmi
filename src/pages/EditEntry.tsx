@@ -5,19 +5,28 @@ import Input from '../components/Input';
 import Button from '../components/Button';
 import ImageUpload from '../components/ImageUpload';
 import { useEntries } from '../context/EntriesContext';
+import { useSettings } from '../context/SettingsContext';
 import { validateMileageEntry, hasErrors } from '../utils/validation';
 import { getTodayDate } from '../utils/formatters';
 import type { FormErrors, MileageEntry } from '../types';
+import { CURRENCY_SYMBOLS } from '../types';
+
+const PRICE_PLACEHOLDER: Record<string, string> = {
+  GBP: 'e.g., 1.45',
+  USD: 'e.g., 1.89',
+  INR: 'e.g., 105',
+};
 
 export default function EditEntry() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const { entries, updateEntry } = useEntries();
-  
+  const { settings } = useSettings();
+
   const [entry, setEntry] = useState<MileageEntry | null>(null);
   const [miles, setMiles] = useState('');
   const [liters, setLiters] = useState('');
-  const [pricePence, setPricePence] = useState('');
+  const [price, setPrice] = useState('');
   const [date, setDate] = useState('');
   const [image, setImage] = useState<string | undefined>();
   const [errors, setErrors] = useState<FormErrors>({});
@@ -32,7 +41,7 @@ export default function EditEntry() {
         setEntry(foundEntry);
         setMiles(foundEntry.miles.toString());
         setLiters(foundEntry.liters.toString());
-        setPricePence(foundEntry.pricePence.toString());
+        setPrice(foundEntry.pricePerLiter.toString());
         setDate(foundEntry.date);
         setImage(foundEntry.image);
       }
@@ -41,12 +50,18 @@ export default function EditEntry() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!id) return;
-    
-    const validationErrors = validateMileageEntry({ miles, liters, pricePence, date });
+
+    const validationErrors = validateMileageEntry({
+      miles,
+      liters,
+      price,
+      date,
+      currency: settings.currency,
+    });
     setErrors(validationErrors);
-    
+
     if (hasErrors(validationErrors)) {
       return;
     }
@@ -56,7 +71,7 @@ export default function EditEntry() {
       await updateEntry(id, {
         miles: parseFloat(miles),
         liters: parseFloat(liters),
-        pricePence: parseFloat(pricePence),
+        pricePerLiter: parseFloat(price),
         date,
         image
       });
@@ -149,15 +164,15 @@ export default function EditEntry() {
             />
 
             <Input
-              label="Price per Liter (pence)"
+              label={`Price per Liter (${CURRENCY_SYMBOLS[settings.currency]})`}
               type="number"
-              step="0.1"
+              step="0.01"
               min="0"
-              placeholder="e.g., 145.9"
-              value={pricePence}
-              onChange={(e) => setPricePence(e.target.value)}
-              error={errors.pricePence}
-              helperText="Enter price in pence (e.g., 145.9p)"
+              placeholder={PRICE_PLACEHOLDER[settings.currency] ?? 'e.g., 1.45'}
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              error={errors.price}
+              helperText={`Enter price in ${settings.currency} per liter`}
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -1,11 +1,11 @@
 import { useEntries } from '../context/EntriesContext';
 import { useSettings } from '../context/SettingsContext';
 import MileageCard from '../components/MileageCard';
-import Toggle from '../components/Toggle';
+import { MILES_TO_KM, CURRENCY_SYMBOLS } from '../types';
 
 export default function Entries() {
   const { entries, isLoading, error, deleteEntry } = useEntries();
-  const { settings, toggleUnit } = useSettings();
+  const { settings } = useSettings();
 
   if (isLoading) {
     return (
@@ -47,11 +47,23 @@ export default function Entries() {
   }
 
   // Calculate summary stats
-  const totalMiles = entries.reduce((sum, e) => sum + e.miles, 0);
+  const totalDistanceRaw = entries.reduce((sum, e) => sum + e.miles, 0);
+  const totalDistance = settings.distanceUnit === 'km'
+    ? totalDistanceRaw * MILES_TO_KM
+    : totalDistanceRaw;
+  const distanceLabel = settings.distanceUnit === 'km' ? 'Total km' : 'Total Miles';
+
   const avgMileage = settings.mileageUnit === 'km/l'
     ? entries.reduce((sum, e) => sum + e.mileageKmPerL, 0) / entries.length
     : entries.reduce((sum, e) => sum + e.mileageMilesPerGallon, 0) / entries.length;
-  const avgMilesPerPound = entries.reduce((sum, e) => sum + (e.milesPerPound || 0), 0) / entries.length;
+
+  const avgDistPerCurrency = entries.reduce((sum, e) => sum + (e.milesPerCurrency || 0), 0) / entries.length;
+  const avgDistPerCurrencyDisplay = settings.distanceUnit === 'km'
+    ? avgDistPerCurrency * MILES_TO_KM
+    : avgDistPerCurrency;
+  const currencySymbol = CURRENCY_SYMBOLS[settings.currency];
+  const distUnit = settings.distanceUnit === 'km' ? 'km' : 'mi';
+  const efficiencyLabel = `Avg ${distUnit}/${currencySymbol}`;
 
   // Sort entries by date descending (latest first)
   const sortedEntries = [...entries].sort((a, b) =>
@@ -60,18 +72,6 @@ export default function Entries() {
 
   return (
     <div className="animate-fade-in">
-      {/* Unit toggle */}
-      <div className="mb-4 rounded-xl overflow-hidden bg-[var(--color-pastel-teal)] border border-[var(--color-border)]">
-        <div className="p-4">
-          <Toggle
-            enabled={settings.mileageUnit === 'mpg'}
-            onChange={toggleUnit}
-            label="Display Unit"
-            description={settings.mileageUnit === 'km/l' ? 'Kilometers per Liter' : 'Miles per Gallon'}
-          />
-        </div>
-      </div>
-
       {/* Summary with pastel tiles */}
       <div className="mb-4">
         <h3 className="text-sm font-semibold text-[var(--color-text-muted)] mb-3 px-1">SUMMARY</h3>
@@ -81,20 +81,20 @@ export default function Entries() {
             <p className="text-2xl font-bold text-[var(--color-pastel-blue-text)]">{entries.length}</p>
             <p className="text-xs font-medium text-[var(--color-pastel-blue-text)] opacity-80">Entries</p>
           </div>
-          {/* Miles tile - Green */}
+          {/* Distance tile - Green */}
           <div className="rounded-xl p-4 text-center bg-[var(--color-pastel-green)]">
-            <p className="text-2xl font-bold text-[var(--color-pastel-green-text)]">{totalMiles.toFixed(0)}</p>
-            <p className="text-xs font-medium text-[var(--color-pastel-green-text)] opacity-80">Total Miles</p>
+            <p className="text-2xl font-bold text-[var(--color-pastel-green-text)]">{totalDistance.toFixed(0)}</p>
+            <p className="text-xs font-medium text-[var(--color-pastel-green-text)] opacity-80">{distanceLabel}</p>
           </div>
-          {/* Average mileage tile - Purple */}
+          {/* Average efficiency tile - Purple */}
           <div className="rounded-xl p-4 text-center bg-[var(--color-pastel-purple)]">
             <p className="text-2xl font-bold text-[var(--color-pastel-purple-text)]">{avgMileage.toFixed(1)}</p>
             <p className="text-xs font-medium text-[var(--color-pastel-purple-text)] opacity-80">Avg {settings.mileageUnit}</p>
           </div>
-          {/* Miles per pound tile - Orange */}
+          {/* Cost efficiency tile - Orange */}
           <div className="rounded-xl p-4 text-center bg-[var(--color-pastel-orange)]">
-            <p className="text-2xl font-bold text-[var(--color-pastel-orange-text)]">{avgMilesPerPound.toFixed(2)}</p>
-            <p className="text-xs font-medium text-[var(--color-pastel-orange-text)] opacity-80">Avg mi/£</p>
+            <p className="text-2xl font-bold text-[var(--color-pastel-orange-text)]">{avgDistPerCurrencyDisplay.toFixed(2)}</p>
+            <p className="text-xs font-medium text-[var(--color-pastel-orange-text)] opacity-80">{efficiencyLabel}</p>
           </div>
         </div>
       </div>

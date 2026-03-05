@@ -3,8 +3,9 @@ import { useSettings } from '../context/SettingsContext';
 import Card, { CardBody, CardHeader } from '../components/Card';
 import Button from '../components/Button';
 import MileageChart from '../components/MileageChart';
-import { formatPrice } from '../utils/formatters';
+import { formatCurrency } from '../utils/formatters';
 import { exportToCSV, exportToPDF } from '../utils/export';
+import { MILES_TO_KM, CURRENCY_SYMBOLS } from '../types';
 
 export default function Dashboard() {
   const { entries, isLoading } = useEntries();
@@ -36,15 +37,24 @@ export default function Dashboard() {
   }
 
   // Calculate statistics
-  const totalMiles = entries.reduce((sum, e) => sum + e.miles, 0);
+  const totalMilesRaw = entries.reduce((sum, e) => sum + e.miles, 0);
+  const totalDistance = settings.distanceUnit === 'km' ? totalMilesRaw * MILES_TO_KM : totalMilesRaw;
+  const distanceLabel = settings.distanceUnit === 'km' ? 'Total km' : 'Total Miles';
+
   const totalLiters = entries.reduce((sum, e) => sum + e.liters, 0);
-  const totalCost = entries.reduce((sum, e) => sum + (e.pricePence * e.liters), 0);
+  const totalCost = entries.reduce((sum, e) => sum + (e.pricePerLiter * e.liters), 0);
 
   const avgMileage = settings.mileageUnit === 'km/l'
     ? entries.reduce((sum, e) => sum + e.mileageKmPerL, 0) / entries.length
     : entries.reduce((sum, e) => sum + e.mileageMilesPerGallon, 0) / entries.length;
 
-  const avgMilesPerPound = entries.reduce((sum, e) => sum + (e.milesPerPound || 0), 0) / entries.length;
+  const avgDistPerCurrencyRaw = entries.reduce((sum, e) => sum + (e.milesPerCurrency || 0), 0) / entries.length;
+  const avgDistPerCurrency = settings.distanceUnit === 'km'
+    ? avgDistPerCurrencyRaw * MILES_TO_KM
+    : avgDistPerCurrencyRaw;
+  const currencySymbol = CURRENCY_SYMBOLS[settings.currency];
+  const distUnit = settings.distanceUnit === 'km' ? 'km' : 'mi';
+  const efficiencyLabel = `${distUnit}/${currencySymbol}`;
 
   const bestEntry = entries.reduce((best, e) => {
     const currentValue = settings.mileageUnit === 'km/l' ? e.mileageKmPerL : e.mileageMilesPerGallon;
@@ -65,10 +75,10 @@ export default function Dashboard() {
     <div className="animate-fade-in space-y-4">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Total Miles */}
+        {/* Total Distance */}
         <div className="rounded-xl p-4 bg-[var(--color-pastel-blue)]">
-          <p className="text-xs font-medium text-[var(--color-pastel-blue-text)] opacity-80">Total Miles</p>
-          <p className="text-2xl font-bold text-[var(--color-pastel-blue-text)]">{totalMiles.toFixed(0)}</p>
+          <p className="text-xs font-medium text-[var(--color-pastel-blue-text)] opacity-80">{distanceLabel}</p>
+          <p className="text-2xl font-bold text-[var(--color-pastel-blue-text)]">{totalDistance.toFixed(0)}</p>
         </div>
 
         {/* Total Liters */}
@@ -80,7 +90,7 @@ export default function Dashboard() {
         {/* Total Cost */}
         <div className="rounded-xl p-4 bg-[var(--color-pastel-orange)]">
           <p className="text-xs font-medium text-[var(--color-pastel-orange-text)] opacity-80">Total Spent</p>
-          <p className="text-2xl font-bold text-[var(--color-pastel-orange-text)]">{formatPrice(totalCost)}</p>
+          <p className="text-2xl font-bold text-[var(--color-pastel-orange-text)]">{formatCurrency(totalCost, settings.currency)}</p>
         </div>
 
         {/* Average Mileage */}
@@ -90,15 +100,15 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Miles per Pound - Full width */}
+      {/* Cost efficiency - Full width */}
       <div className="rounded-xl p-4 bg-gradient-to-r from-[var(--color-pastel-teal)] to-[var(--color-pastel-green)]">
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-medium text-[var(--color-pastel-teal-text)] opacity-80">Average Miles per £1</p>
-            <p className="text-3xl font-bold text-[var(--color-pastel-teal-text)]">{avgMilesPerPound.toFixed(2)} <span className="text-lg">mi/£</span></p>
+            <p className="text-xs font-medium text-[var(--color-pastel-teal-text)] opacity-80">Average {efficiencyLabel}</p>
+            <p className="text-3xl font-bold text-[var(--color-pastel-teal-text)]">{avgDistPerCurrency.toFixed(2)} <span className="text-lg">{efficiencyLabel}</span></p>
           </div>
           <div className="w-14 h-14 rounded-full bg-white/30 flex items-center justify-center">
-            <span className="text-2xl font-bold text-[var(--color-pastel-teal-text)]">£</span>
+            <span className="text-2xl font-bold text-[var(--color-pastel-teal-text)]">{currencySymbol}</span>
           </div>
         </div>
       </div>
@@ -147,7 +157,7 @@ export default function Dashboard() {
           <div className="flex gap-3">
             <Button
               variant="secondary"
-              onClick={() => exportToCSV(entries, settings.mileageUnit)}
+              onClick={() => exportToCSV(entries, settings)}
               className="flex-1"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -157,7 +167,7 @@ export default function Dashboard() {
             </Button>
             <Button
               variant="primary"
-              onClick={() => exportToPDF(entries, settings.mileageUnit)}
+              onClick={() => exportToPDF(entries, settings)}
               className="flex-1"
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

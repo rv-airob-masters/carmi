@@ -1,4 +1,6 @@
 // Utility functions for formatting values
+import type { Currency } from '../types';
+import { CURRENCY_SYMBOLS } from '../types';
 
 /**
  * Format a number with specified decimal places
@@ -8,18 +10,29 @@ export function formatNumber(value: number, decimals: number = 2): string {
 }
 
 /**
- * Format price in pence to pounds string
+ * Format a total cost amount with the correct currency symbol
+ * value is the full currency amount (e.g. 65.25 for £65.25)
  */
-export function formatPrice(pence: number): string {
-  const pounds = pence / 100;
-  return `£${pounds.toFixed(2)}`;
+export function formatCurrency(value: number, currency: Currency = 'GBP'): string {
+  const symbol = CURRENCY_SYMBOLS[currency];
+  return `${symbol}${value.toFixed(2)}`;
 }
 
 /**
- * Format price per liter
+ * Format price per liter with currency symbol
+ * pricePerLiter is the full value (e.g. 1.45 for £1.45/L, 105 for ₹105/L)
  */
-export function formatPricePerLiter(pence: number): string {
-  return `${pence}p/L`;
+export function formatPricePerLiter(pricePerLiter: number, currency: Currency = 'GBP'): string {
+  const symbol = CURRENCY_SYMBOLS[currency];
+  return `${symbol}${pricePerLiter.toFixed(2)}/L`;
+}
+
+/**
+ * @deprecated Use formatCurrency instead
+ * Kept for any legacy callers — treats input as pence
+ */
+export function formatPrice(pence: number): string {
+  return `£${(pence / 100).toFixed(2)}`;
 }
 
 /**
