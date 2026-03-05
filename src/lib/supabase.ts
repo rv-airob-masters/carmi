@@ -1,9 +1,9 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://ievjfhlsvjvwrbvyiajp.supabase.co';
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlldmpmaGxzdmp2d3JidnlpYWpwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ0NTA4ODksImV4cCI6MjA4MDAyNjg4OX0.gYyjnBuPLNUMpkPGhsjTIlE-74zPcyewzS9EZEv223M';
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
+const supabasePublishableKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabasePublishableKey);
 
 // Database types
 export interface SupabaseMileageEntry {
