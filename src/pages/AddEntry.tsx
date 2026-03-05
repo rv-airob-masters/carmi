@@ -27,8 +27,8 @@ export default function AddEntry() {
   const [showSuccess, setShowSuccess] = useState(false);
 
   const handleUnitToggle = (unit: DistanceUnit) => {
+    if (unit === distanceUnit) return;
     setDistanceUnit(unit);
-    setDistance('');
     setErrors((prev) => ({ ...prev, miles: undefined }));
   };
 
@@ -190,15 +190,25 @@ export default function AddEntry() {
               error={errors.image}
             />
 
-            <Button
-              type="submit"
-              fullWidth
-              size="lg"
-              loading={isSubmitting}
-              className="mt-6"
-            >
-              Save Entry
-            </Button>
+            <div className="flex gap-3 mt-6">
+              <Button
+                type="button"
+                variant="ghost"
+                fullWidth
+                size="lg"
+                onClick={() => navigate(-1)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                fullWidth
+                size="lg"
+                loading={isSubmitting}
+              >
+                Save Entry
+              </Button>
+            </div>
           </form>
         </CardBody>
       </Card>
