@@ -1,5 +1,5 @@
 import type { MileageEntry, AppSettings } from '../types';
-import { MILES_TO_KM, CURRENCY_SYMBOLS } from '../types';
+import { MILES_TO_KM, CURRENCY_SYMBOLS, CURRENCY_PRICE_CONFIG, LITERS_PER_US_GALLON } from '../types';
 import { formatDate, formatCurrency, formatPricePerLiter } from './formatters';
 
 /**
@@ -9,6 +9,10 @@ export function exportToCSV(entries: MileageEntry[], settings: AppSettings): voi
   const { mileageUnit, distanceUnit, currency } = settings;
   const distLabel = distanceUnit === 'km' ? 'km' : 'miles';
   const currSymbol = CURRENCY_SYMBOLS[currency];
+  const volConfig = CURRENCY_PRICE_CONFIG[currency];
+  const isGal = volConfig.volumeUnit === 'gal';
+  const volLabel = isGal ? 'Gallons' : 'Liters';
+  const priceColLabel = isGal ? `Price/gal (${currSymbol})` : `Price/L (${currSymbol})`;
 
   // Sort by date descending
   const sortedEntries = [...entries].sort(
@@ -19,8 +23,8 @@ export function exportToCSV(entries: MileageEntry[], settings: AppSettings): voi
   const headers = [
     'Date',
     `Distance (${distLabel})`,
-    'Liters',
-    `Price/L (${currSymbol})`,
+    volLabel,
+    priceColLabel,
     `Total Cost (${currSymbol})`,
     mileageUnit === 'km/l' ? 'Mileage (km/L)' : 'Mileage (mpg)',
     `${distLabel}/${currSymbol}`,
@@ -35,12 +39,16 @@ export function exportToCSV(entries: MileageEntry[], settings: AppSettings): voi
     const distPerCurrency = distanceUnit === 'km'
       ? (entry.milesPerCurrency * MILES_TO_KM).toFixed(2)
       : entry.milesPerCurrency.toFixed(2);
+    const vol = isGal ? (entry.liters / LITERS_PER_US_GALLON).toFixed(2) : entry.liters.toFixed(2);
+    const priceDisplay = isGal
+      ? (entry.pricePerLiter * LITERS_PER_US_GALLON).toFixed(3)
+      : entry.pricePerLiter.toFixed(2);
 
     return [
       entry.date,
       dist,
-      entry.liters.toFixed(2),
-      entry.pricePerLiter.toFixed(2),
+      vol,
+      priceDisplay,
       totalCost,
       mileageUnit === 'km/l'
         ? entry.mileageKmPerL.toFixed(2)
@@ -67,6 +75,10 @@ export function exportToPDF(entries: MileageEntry[], settings: AppSettings): voi
   const distLabel = distanceUnit === 'km' ? 'km' : 'miles';
   const currSymbol = CURRENCY_SYMBOLS[currency];
   const effLabel = `${distLabel}/${currSymbol}`;
+  const pdfVolConfig = CURRENCY_PRICE_CONFIG[currency];
+  const pdfIsGal = pdfVolConfig.volumeUnit === 'gal';
+  const pdfVolLabel = pdfIsGal ? 'Gallons' : 'Liters';
+  const pdfPriceColLabel = pdfIsGal ? `Price/gal (${currSymbol})` : `Price/L (${currSymbol})`;
 
   // Sort by date descending
   const sortedEntries = [...entries].sort(
@@ -77,6 +89,7 @@ export function exportToPDF(entries: MileageEntry[], settings: AppSettings): voi
   const totalDistRaw = entries.reduce((sum, e) => sum + e.miles, 0);
   const totalDist = distanceUnit === 'km' ? totalDistRaw * MILES_TO_KM : totalDistRaw;
   const totalLiters = entries.reduce((sum, e) => sum + e.liters, 0);
+  const totalVolDisplay = pdfIsGal ? totalLiters / LITERS_PER_US_GALLON : totalLiters;
   const totalCost = entries.reduce((sum, e) => sum + (e.pricePerLiter * e.liters), 0);
   const avgMileage = mileageUnit === 'km/l'
     ? entries.reduce((sum, e) => sum + e.mileageKmPerL, 0) / entries.length
@@ -117,8 +130,8 @@ export function exportToPDF(entries: MileageEntry[], settings: AppSettings): voi
       <div class="stat-value">${totalDist.toFixed(0)}</div>
     </div>
     <div class="stat">
-      <div class="stat-label">Total Liters</div>
-      <div class="stat-value">${totalLiters.toFixed(1)}</div>
+      <div class="stat-label">Total ${pdfVolLabel}</div>
+      <div class="stat-value">${totalVolDisplay.toFixed(1)}</div>
     </div>
     <div class="stat">
       <div class="stat-label">Total Spent</div>
@@ -135,8 +148,8 @@ export function exportToPDF(entries: MileageEntry[], settings: AppSettings): voi
       <tr>
         <th>Date</th>
         <th>${distLabel}</th>
-        <th>Liters</th>
-        <th>Price/L (${currSymbol})</th>
+        <th>${pdfVolLabel}</th>
+        <th>${pdfPriceColLabel}</th>
         <th>Cost</th>
         <th>${mileageUnit}</th>
         <th>${effLabel}</th>
@@ -154,7 +167,7 @@ export function exportToPDF(entries: MileageEntry[], settings: AppSettings): voi
         <tr>
           <td>${formatDate(entry.date)}</td>
           <td>${dist}</td>
-          <td>${entry.liters.toFixed(2)}</td>
+          <td>${pdfIsGal ? (entry.liters / LITERS_PER_US_GALLON).toFixed(2) : entry.liters.toFixed(2)}</td>
           <td>${formatPricePerLiter(entry.pricePerLiter, currency)}</td>
           <td>${formatCurrency(entry.pricePerLiter * entry.liters, currency)}</td>
           <td>${(mileageUnit === 'km/l' ? entry.mileageKmPerL : entry.mileageMilesPerGallon).toFixed(2)}</td>

@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useSettings } from '../context/SettingsContext';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
@@ -7,9 +8,10 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   const { user, isLoading } = useAuth();
+  const { settings, isLoading: settingsLoading } = useSettings();
   const location = useLocation();
 
-  if (isLoading) {
+  if (isLoading || settingsLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800">
         <div className="text-center">
@@ -25,8 +27,12 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!user) {
-    // Redirect to login page but save the attempted location
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // If region not set, redirect to onboarding (unless already on that page)
+  if (!settings.region && location.pathname !== '/region-setup') {
+    return <Navigate to="/region-setup" replace />;
   }
 
   return <>{children}</>;

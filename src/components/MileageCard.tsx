@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSettings } from '../context/SettingsContext';
 import { formatDate, formatPricePerLiter, formatCurrency, formatMileage } from '../utils/formatters';
 import type { MileageEntry } from '../types';
-import { MILES_TO_KM, CURRENCY_SYMBOLS } from '../types';
+import { MILES_TO_KM, CURRENCY_SYMBOLS, CURRENCY_PRICE_CONFIG, LITERS_PER_US_GALLON } from '../types';
 
 // Pastel color schemes for alternating cards
 const colorSchemes = [
@@ -41,6 +41,13 @@ export default function MileageCard({ entry, onDelete, colorIndex = 0 }: Mileage
   const currencySymbol = CURRENCY_SYMBOLS[settings.currency];
   const distUnit = settings.distanceUnit === 'km' ? 'km' : 'mi';
   const efficiencyLabel = `${distUnit}/${currencySymbol}`;
+
+  // Volume display: stored in liters; convert to gallons for USD
+  const volumeConfig = CURRENCY_PRICE_CONFIG[settings.currency];
+  const volumeValue = volumeConfig.volumeUnit === 'gal'
+    ? (entry.liters / LITERS_PER_US_GALLON).toFixed(2)
+    : entry.liters.toFixed(2);
+  const volumeLabel = volumeConfig.volumeUnit === 'gal' ? 'Gallons' : 'Liters';
 
   // Total cost
   const totalCost = entry.pricePerLiter * entry.liters;
@@ -111,11 +118,11 @@ export default function MileageCard({ entry, onDelete, colorIndex = 0 }: Mileage
               <p className="font-semibold" style={{ color: colorScheme.text }}>{distanceValue}</p>
             </div>
             <div>
-              <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>Liters</p>
-              <p className="font-semibold" style={{ color: colorScheme.text }}>{entry.liters.toFixed(2)}</p>
+              <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>{volumeLabel}</p>
+              <p className="font-semibold" style={{ color: colorScheme.text }}>{volumeValue}</p>
             </div>
             <div>
-              <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>Price/L</p>
+              <p className="text-xs opacity-70" style={{ color: colorScheme.text }}>Price</p>
               <p className="font-semibold" style={{ color: colorScheme.text }}>{formatPricePerLiter(entry.pricePerLiter, settings.currency)}</p>
             </div>
             <div>

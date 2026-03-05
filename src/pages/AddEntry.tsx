@@ -9,14 +9,7 @@ import { useSettings } from '../context/SettingsContext';
 import { validateMileageEntry, hasErrors } from '../utils/validation';
 import { getTodayDate } from '../utils/formatters';
 import type { FormErrors, DistanceUnit } from '../types';
-import { MILES_TO_KM, CURRENCY_SYMBOLS } from '../types';
-
-// Price placeholder/helper text per currency
-const PRICE_PLACEHOLDER: Record<string, string> = {
-  GBP: 'e.g., 1.45',
-  USD: 'e.g., 1.89',
-  INR: 'e.g., 105',
-};
+import { MILES_TO_KM, CURRENCY_PRICE_CONFIG } from '../types';
 
 export default function AddEntry() {
   const navigate = useNavigate();
@@ -70,12 +63,14 @@ export default function AddEntry() {
       ? parseFloat(distance) / MILES_TO_KM
       : parseFloat(distance);
 
+    const currConfig = CURRENCY_PRICE_CONFIG[settings.currency];
+
     try {
       setIsSubmitting(true);
       await addEntry({
         miles: milesValue,
-        liters: parseFloat(liters),
-        pricePerLiter: parseFloat(price),
+        liters: parseFloat(liters) * currConfig.volumeToStorage,
+        pricePerLiter: parseFloat(price) * currConfig.priceToStorage,
         date,
         image
       });
@@ -166,11 +161,11 @@ export default function AddEntry() {
             />
 
             <Input
-              label="Liters Filled"
+              label={CURRENCY_PRICE_CONFIG[settings.currency].volumeLabel}
               type="number"
               step="0.01"
               min="0"
-              placeholder="e.g., 45.5"
+              placeholder={settings.currency === 'USD' ? 'e.g., 12.0' : 'e.g., 45.5'}
               value={liters}
               onChange={(e) => setLiters(e.target.value)}
               error={errors.liters}
@@ -182,15 +177,15 @@ export default function AddEntry() {
             />
 
             <Input
-              label={`Price per Liter (${CURRENCY_SYMBOLS[settings.currency]})`}
+              label={CURRENCY_PRICE_CONFIG[settings.currency].priceLabel}
               type="number"
-              step="0.01"
+              step={CURRENCY_PRICE_CONFIG[settings.currency].priceStep}
               min="0"
-              placeholder={PRICE_PLACEHOLDER[settings.currency] ?? 'e.g., 1.45'}
+              placeholder={CURRENCY_PRICE_CONFIG[settings.currency].pricePlaceholder}
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               error={errors.price}
-              helperText={`Enter price in ${settings.currency} per liter`}
+              helperText={CURRENCY_PRICE_CONFIG[settings.currency].priceHelperText}
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

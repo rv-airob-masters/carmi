@@ -9,13 +9,7 @@ import { useSettings } from '../context/SettingsContext';
 import { validateMileageEntry, hasErrors } from '../utils/validation';
 import { getTodayDate } from '../utils/formatters';
 import type { FormErrors, MileageEntry } from '../types';
-import { CURRENCY_SYMBOLS } from '../types';
-
-const PRICE_PLACEHOLDER: Record<string, string> = {
-  GBP: 'e.g., 1.45',
-  USD: 'e.g., 1.89',
-  INR: 'e.g., 105',
-};
+import { CURRENCY_PRICE_CONFIG } from '../types';
 
 export default function EditEntry() {
   const navigate = useNavigate();
@@ -33,20 +27,26 @@ export default function EditEntry() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  // Load entry data
+  const currConfig = CURRENCY_PRICE_CONFIG[settings.currency];
+
+  // Load entry data — convert stored values to display units
   useEffect(() => {
     if (id && entries.length > 0) {
       const foundEntry = entries.find(e => e.id === id);
       if (foundEntry) {
         setEntry(foundEntry);
         setMiles(foundEntry.miles.toString());
-        setLiters(foundEntry.liters.toString());
-        setPrice(foundEntry.pricePerLiter.toString());
+        // Convert stored liters → display volume (gallons for USD)
+        const displayVolume = foundEntry.liters / currConfig.volumeToStorage;
+        setLiters(parseFloat(displayVolume.toFixed(4)).toString());
+        // Convert stored pricePerLiter → display price (pence for GBP, $/gal for USD)
+        const displayPrice = foundEntry.pricePerLiter / currConfig.priceToStorage;
+        setPrice(parseFloat(displayPrice.toFixed(4)).toString());
         setDate(foundEntry.date);
         setImage(foundEntry.image);
       }
     }
-  }, [id, entries]);
+  }, [id, entries, currConfig]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,8 +70,8 @@ export default function EditEntry() {
       setIsSubmitting(true);
       await updateEntry(id, {
         miles: parseFloat(miles),
-        liters: parseFloat(liters),
-        pricePerLiter: parseFloat(price),
+        liters: parseFloat(liters) * currConfig.volumeToStorage,
+        pricePerLiter: parseFloat(price) * currConfig.priceToStorage,
         date,
         image
       });
@@ -148,11 +148,11 @@ export default function EditEntry() {
               }
             />
             <Input
-              label="Liters Filled"
+              label={currConfig.volumeLabel}
               type="number"
               step="0.01"
               min="0"
-              placeholder="e.g., 45.5"
+              placeholder={settings.currency === 'USD' ? 'e.g., 12.0' : 'e.g., 45.5'}
               value={liters}
               onChange={(e) => setLiters(e.target.value)}
               error={errors.liters}
@@ -164,15 +164,15 @@ export default function EditEntry() {
             />
 
             <Input
-              label={`Price per Liter (${CURRENCY_SYMBOLS[settings.currency]})`}
+              label={currConfig.priceLabel}
               type="number"
-              step="0.01"
+              step={currConfig.priceStep}
               min="0"
-              placeholder={PRICE_PLACEHOLDER[settings.currency] ?? 'e.g., 1.45'}
+              placeholder={currConfig.pricePlaceholder}
               value={price}
               onChange={(e) => setPrice(e.target.value)}
               error={errors.price}
-              helperText={`Enter price in ${settings.currency} per liter`}
+              helperText={currConfig.priceHelperText}
               icon={
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -101,6 +101,7 @@ const SETTINGS_ID = 'app-settings';
 export async function getSettings(): Promise<AppSettings> {
   const settings = await db.settings.get(SETTINGS_ID);
   return settings ?? {
+    // region is undefined by default → triggers onboarding
     distanceUnit: 'miles',
     mileageUnit: 'km/l',
     currency: 'GBP',

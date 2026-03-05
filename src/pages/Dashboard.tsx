@@ -5,7 +5,7 @@ import Button from '../components/Button';
 import MileageChart from '../components/MileageChart';
 import { formatCurrency } from '../utils/formatters';
 import { exportToCSV, exportToPDF } from '../utils/export';
-import { MILES_TO_KM, CURRENCY_SYMBOLS } from '../types';
+import { MILES_TO_KM, CURRENCY_SYMBOLS, CURRENCY_PRICE_CONFIG, LITERS_PER_US_GALLON } from '../types';
 
 export default function Dashboard() {
   const { entries, isLoading } = useEntries();
@@ -42,6 +42,9 @@ export default function Dashboard() {
   const distanceLabel = settings.distanceUnit === 'km' ? 'Total km' : 'Total Miles';
 
   const totalLiters = entries.reduce((sum, e) => sum + e.liters, 0);
+  const isGallons = CURRENCY_PRICE_CONFIG[settings.currency].volumeUnit === 'gal';
+  const totalVolumeDisplay = isGallons ? totalLiters / LITERS_PER_US_GALLON : totalLiters;
+  const volumeLabel = isGallons ? 'Total Gallons' : 'Total Liters';
   const totalCost = entries.reduce((sum, e) => sum + (e.pricePerLiter * e.liters), 0);
 
   const avgMileage = settings.mileageUnit === 'km/l'
@@ -81,10 +84,10 @@ export default function Dashboard() {
           <p className="text-2xl font-bold text-[var(--color-pastel-blue-text)]">{totalDistance.toFixed(0)}</p>
         </div>
 
-        {/* Total Liters */}
+        {/* Total Volume */}
         <div className="rounded-xl p-4 bg-[var(--color-pastel-green)]">
-          <p className="text-xs font-medium text-[var(--color-pastel-green-text)] opacity-80">Total Liters</p>
-          <p className="text-2xl font-bold text-[var(--color-pastel-green-text)]">{totalLiters.toFixed(1)}</p>
+          <p className="text-xs font-medium text-[var(--color-pastel-green-text)] opacity-80">{volumeLabel}</p>
+          <p className="text-2xl font-bold text-[var(--color-pastel-green-text)]">{totalVolumeDisplay.toFixed(1)}</p>
         </div>
 
         {/* Total Cost */}

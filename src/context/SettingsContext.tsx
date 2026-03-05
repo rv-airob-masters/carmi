@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import type { AppSettings, MileageUnit, ThemeMode, DistanceUnit, Currency } from '../types';
+import type { AppSettings, MileageUnit, ThemeMode, Region } from '../types';
+import { REGION_DEFAULTS } from '../types';
 import { getSettings, updateSettings as updateDbSettings } from '../db/database';
 
 interface SettingsContextType {
@@ -9,8 +10,7 @@ interface SettingsContextType {
   toggleUnit: () => void;
   setMileageUnit: (unit: MileageUnit) => void;
   setTheme: (theme: ThemeMode) => void;
-  setDistanceUnit: (unit: DistanceUnit) => void;
-  setCurrency: (currency: Currency) => void;
+  setRegion: (region: Region) => void;
 }
 
 const defaultSettings: AppSettings = {
@@ -85,12 +85,13 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     updateAndSave({ theme });
   }, [updateAndSave]);
 
-  const setDistanceUnit = useCallback((unit: DistanceUnit) => {
-    updateAndSave({ distanceUnit: unit });
-  }, [updateAndSave]);
-
-  const setCurrency = useCallback((currency: Currency) => {
-    updateAndSave({ currency });
+  const setRegion = useCallback((region: Region) => {
+    const defaults = REGION_DEFAULTS[region];
+    updateAndSave({
+      region,
+      currency: defaults.currency,
+      distanceUnit: defaults.distanceUnit,
+    });
   }, [updateAndSave]);
 
   return (
@@ -101,8 +102,7 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
       toggleUnit,
       setMileageUnit,
       setTheme,
-      setDistanceUnit,
-      setCurrency
+      setRegion
     }}>
       {children}
     </SettingsContext.Provider>

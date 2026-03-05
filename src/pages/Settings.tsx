@@ -5,8 +5,8 @@ import Toggle from '../components/Toggle';
 import { useSettings } from '../context/SettingsContext';
 import { useAuth } from '../context/AuthContext';
 import { getDatabaseInfo } from '../db/database';
-import type { DistanceUnit, MileageUnit, Currency } from '../types';
-import { CURRENCY_NAMES } from '../types';
+import type { MileageUnit, Region } from '../types';
+import { REGION_NAMES, REGION_DEFAULTS, CURRENCY_SYMBOLS } from '../types';
 
 // Reusable pill-group selector
 function PillGroup<T extends string>({
@@ -45,7 +45,7 @@ interface DbInfo {
 }
 
 export default function Settings() {
-  const { settings, toggleTheme, setDistanceUnit, setMileageUnit, setCurrency } = useSettings();
+  const { settings, toggleTheme, setMileageUnit, setRegion } = useSettings();
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const [dbInfo, setDbInfo] = useState<DbInfo | null>(null);
@@ -89,28 +89,34 @@ export default function Settings() {
         </CardBody>
       </Card>
 
-      {/* Units & Currency */}
+      {/* Region */}
       <Card>
         <CardHeader>
-          <h2 className="font-semibold text-[var(--color-text)]">Units &amp; Currency</h2>
+          <h2 className="font-semibold text-[var(--color-text)]">Region</h2>
         </CardHeader>
         <CardBody>
           <div className="space-y-5">
-            {/* Distance */}
             <div>
-              <p className="text-sm font-medium text-[var(--color-text)] mb-2">Distance</p>
-              <PillGroup<DistanceUnit>
+              <p className="text-sm font-medium text-[var(--color-text)] mb-2">Your Region</p>
+              <PillGroup<Region>
                 options={[
-                  { value: 'miles', label: 'Miles (mi)' },
-                  { value: 'km', label: 'Kilometers (km)' },
+                  { value: 'UK', label: REGION_NAMES['UK'] },
+                  { value: 'US', label: REGION_NAMES['US'] },
+                  { value: 'India', label: REGION_NAMES['India'] },
                 ]}
-                value={settings.distanceUnit}
-                onChange={setDistanceUnit}
+                value={settings.region ?? 'UK'}
+                onChange={setRegion}
               />
+              {settings.region && (
+                <p className="text-xs text-[var(--color-text-muted)] mt-2">
+                  Currency: {CURRENCY_SYMBOLS[REGION_DEFAULTS[settings.region].currency]} ·
+                  Distance: {REGION_DEFAULTS[settings.region].distanceUnit === 'miles' ? 'Miles' : 'Kilometers'}
+                </p>
+              )}
             </div>
-            {/* Fuel Efficiency */}
+            {/* Fuel Efficiency — always independently selectable */}
             <div>
-              <p className="text-sm font-medium text-[var(--color-text)] mb-2">Fuel Efficiency</p>
+              <p className="text-sm font-medium text-[var(--color-text)] mb-2">Fuel Efficiency Display</p>
               <PillGroup<MileageUnit>
                 options={[
                   { value: 'km/l', label: 'km / L' },
@@ -118,19 +124,6 @@ export default function Settings() {
                 ]}
                 value={settings.mileageUnit}
                 onChange={setMileageUnit}
-              />
-            </div>
-            {/* Currency */}
-            <div>
-              <p className="text-sm font-medium text-[var(--color-text)] mb-2">Currency</p>
-              <PillGroup<Currency>
-                options={([
-                  { value: 'GBP' as Currency, label: CURRENCY_NAMES['GBP'] },
-                  { value: 'USD' as Currency, label: CURRENCY_NAMES['USD'] },
-                  { value: 'INR' as Currency, label: CURRENCY_NAMES['INR'] },
-                ])}
-                value={settings.currency}
-                onChange={setCurrency}
               />
             </div>
           </div>

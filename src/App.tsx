@@ -12,6 +12,7 @@ import Settings from './pages/Settings';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import ForgotPassword from './pages/ForgotPassword';
+import RegionSetup from './pages/RegionSetup';
 
 function App() {
   return (
@@ -24,6 +25,13 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<Signup />} />
               <Route path="/forgot-password" element={<ForgotPassword />} />
+
+              {/* Region onboarding (protected but no Layout) */}
+              <Route path="/region-setup" element={
+                <ProtectedRoute>
+                  <RegionSetup />
+                </ProtectedRoute>
+              } />
 
               {/* Protected routes */}
               <Route path="/" element={

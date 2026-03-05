@@ -1,6 +1,6 @@
 // Utility functions for formatting values
 import type { Currency } from '../types';
-import { CURRENCY_SYMBOLS } from '../types';
+import { CURRENCY_SYMBOLS, LITERS_PER_US_GALLON } from '../types';
 
 /**
  * Format a number with specified decimal places
@@ -19,12 +19,27 @@ export function formatCurrency(value: number, currency: Currency = 'GBP'): strin
 }
 
 /**
- * Format price per liter with currency symbol
- * pricePerLiter is the full value (e.g. 1.45 for £1.45/L, 105 for ₹105/L)
+ * Format price matching petrol-station display conventions.
+ * pricePerLiter is stored internally as major-unit per liter.
+ *   GBP → pence/L   (×100):  1.459 → "145.9p/L"
+ *   USD → $/gallon   (×3.785): 0.925 → "$3.50/gal"
+ *   INR → ₹/L        (as-is): 105.5 → "₹105.50/L"
  */
 export function formatPricePerLiter(pricePerLiter: number, currency: Currency = 'GBP'): string {
-  const symbol = CURRENCY_SYMBOLS[currency];
-  return `${symbol}${pricePerLiter.toFixed(2)}/L`;
+  switch (currency) {
+    case 'GBP': {
+      const pence = pricePerLiter * 100;
+      return `${pence.toFixed(1)}p/L`;
+    }
+    case 'USD': {
+      const perGallon = pricePerLiter * LITERS_PER_US_GALLON;
+      return `$${perGallon.toFixed(3)}/gal`;
+    }
+    case 'INR':
+      return `₹${pricePerLiter.toFixed(2)}/L`;
+    default:
+      return `${pricePerLiter.toFixed(2)}/L`;
+  }
 }
 
 /**
