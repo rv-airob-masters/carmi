@@ -24,10 +24,10 @@ const supabaseToLocal = (entry: SupabaseMileageEntry): MileageEntry => ({
   date: entry.date,
   miles: entry.miles,
   liters: entry.liters,
-  pricePence: entry.price_per_liter,
+  pricePerLiter: entry.price_per_liter,
   mileageKmPerL: entry.mileage_km_per_l,
   mileageMilesPerGallon: entry.mileage_mpg,
-  milesPerPound: entry.miles_per_pound || 0,
+  milesPerCurrency: entry.miles_per_pound || 0,
   image: entry.image || undefined,
   createdAt: entry.created_at,
   updatedAt: entry.updated_at
@@ -40,10 +40,10 @@ const localToSupabase = (entry: MileageEntry, userId: string): Omit<SupabaseMile
   date: entry.date,
   miles: entry.miles,
   liters: entry.liters,
-  price_per_liter: entry.pricePence,
+  price_per_liter: entry.pricePerLiter,
   mileage_km_per_l: entry.mileageKmPerL,
   mileage_mpg: entry.mileageMilesPerGallon,
-  miles_per_pound: entry.milesPerPound,
+  miles_per_pound: entry.milesPerCurrency,
   image: entry.image || null
 });
 
@@ -224,10 +224,10 @@ export function EntriesProvider({ children }: { children: React.ReactNode }) {
             date: updated.date,
             miles: updated.miles,
             liters: updated.liters,
-            price_per_liter: updated.pricePence,
+            price_per_liter: updated.pricePerLiter,
             mileage_km_per_l: updated.mileageKmPerL,
             mileage_mpg: updated.mileageMilesPerGallon,
-            miles_per_pound: updated.milesPerPound,
+            miles_per_pound: updated.milesPerCurrency,
             image: updated.image || null
           });
         } catch (err) {
